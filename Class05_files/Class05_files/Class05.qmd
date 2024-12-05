@@ -1,0 +1,289 @@
+---
+title: "Class 5: Data Viz with ggplot"
+author: "Troy Lee A17078296"
+format: pdf
+---
+
+## Plotting in R
+
+R has lot's pf ways to make plots and figures. This includes so-called **base** graphics and packages like **ggplot2**
+
+```{r}
+plot(cars)
+```
+
+
+This is a **base** R plot of the in-built 'cars' dataset that has ony two columns:
+
+```{r}
+head(cars)
+```
+
+
+> Q.How would we plot this wee dataset with **ggplot2**?
+
+All ggplot figures hav at least 3 layers:
+
+- **data**
+- **aes** (how the data map to the plot)
+- **geoms** (how we draw the plot, lines, points, etc)
+
+Before I use any new package I need to download and install it with the `install.package()` command.
+
+> I never use `install.packages()` within my quarto document otherwise I will install the package over and over and over again -which is silly 
+
+Once a package is installed I can load it up with the `library()` function.
+
+```{r}
+# install.packages("ggplot2)
+library(ggplot2)
+ggplot(cars) +
+  aes(x=speed, y=dist) +
+  geom_point()
+```
+
+
+
+**Key-point**: For simple plots (like the one above) ggplot is more verbose (we need to do more typing) but as plots get more complicated ggplot starts to be more clear and simple than base R plot()
+
+```{r}
+ggplot(cars) +
+  aes(speed, dist) +
+  geom_point() +
+  geom_smooth(method= "lm", se=FALSE) +
+  labs(title="Stopping distance of old cars", subtitle = "From the inbuilt cars dataset") +
+  theme_bw()
+```
+
+
+> Q1.  For which phases is data visualization important in our scientific workflows?
+
+All of the above
+
+> Q2. True or False? The ggplot2 package comes already installed with R?
+
+FALSE
+
+>Q3. Which plot types are typically NOT used to compare distributions of numeric variables? 
+
+Network graphs 
+
+> Q4.  Which statement about data visualization with ggplot2 is incorrect?
+
+ggplot2 is the only way to create plots in R
+
+> Q5. Which geometric layer should be used to create scatter plots in ggplot2?
+
+geom_point()
+
+```{r}
+url <- "https://bioboot.github.io/bimm143_S20/class-material/up_down_expression.txt"
+genes <- read.delim(url)
+head(genes)
+```
+
+> Q. Use the nrow() function to find out how many genes are in this dataset. What is your answer? 
+
+nrow(genes)
+```{r}
+nrow(genes)
+```
+
+
+> Q. Use the colnames() function and the ncol() function on the genes data frame to find out what the column names are (we will need these later) and how many columns there are. How many columns did you find? 
+
+```{r}
+colnames(genes)
+```
+
+```{r}
+ncol(genes)
+```
+
+
+>Q. Use the table() function on the State column of this data.frame to find out how many ‘up’ regulated genes there are. What is your answer? 
+
+```{r}
+table(genes$State)
+```
+
+
+>Q. Using your values above and 2 significant figures. What fraction of total genes is up-regulated in this dataset? 
+
+```{r}
+round( table(genes$State)/nrow(genes) * 100, 2 )
+
+
+```
+
+
+
+
+
+A first plot:
+
+```{r}
+ggplot(genes) +
+  aes(Condition1, Condition2) +
+  geom_point(col="blue")
+
+```
+
+```{r}
+ggplot(genes) +
+  aes(Condition1, Condition2, col=State) +
+  geom_point()
+
+```
+
+```{r}
+p <- ggplot(genes) + 
+    aes(x=Condition1, y=Condition2, col=State) +
+    geom_point()
+
+```
+
+```{r}
+p + scale_colour_manual(values=c("blue","gray","red")) +
+    labs(title="Gene Expresion Changes Upon Drug Treatment",
+         x="Control (no drug) ",
+         y="Drug Treatment")
+```
+
+
+```{r}
+# File location online
+url <- "https://raw.githubusercontent.com/jennybc/gapminder/master/inst/extdata/gapminder.tsv"
+
+gapminder <- read.delim(url)
+```
+
+
+```{r}
+library(gapminder)
+library(dplyr)
+gapminder_2007 <- gapminder %>% filter(year==2007)
+```
+
+```{r}
+# install.packages("dplyr")  ## un-comment to install if needed
+library(gapminder)
+library(dplyr)
+
+gapminder_2007 <- gapminder %>% filter(year==2007)
+```
+```{r}
+ggplot(gapminder_2007) +
+  aes(x=gdpPercap, y=lifeExp,) +
+  geom_point(alpha=0.5)
+```
+
+```{r}
+ggplot(gapminder_2007) +
+  aes(x=gdpPercap, y=lifeExp, color=continent, size=pop) +
+  geom_point(alpha=0.5)
+```
+
+```{r}
+gapminder_1957 <- gapminder %>% filter(year==1957)
+```
+
+```{r}
+# install.packages("dplyr")  ## un-comment to install if needed
+library(gapminder)
+library(dplyr)
+
+gapminder_1957 <- gapminder %>% filter(year==1957)
+```
+
+```{r}
+s <- ggplot(gapminder_1957)+
+  aes(x=gdpPercap, y=lifeExp, color=continent, size=pop) +
+  geom_point(alpha=0.7) +
+  scale_size_area(max_size=10)
+
+s
+```
+
+```{r}
+gapminder_1957 <- gapminder %>% filter(year==1957 | year==2007)
+
+ggplot(gapminder_1957) + 
+  geom_point(aes(x = gdpPercap, y = lifeExp, color=continent,
+                 size = pop), alpha=0.7) + 
+  scale_size_area(max_size = 10) +
+  facet_wrap(~year)
+```
+
+```{r}
+gapminder_top5 <- gapminder %>% 
+  filter(year==2007) %>% 
+  arrange(desc(pop)) %>% 
+  top_n(5, pop)
+
+gapminder_top5
+```
+
+```{r}
+ggplot(gapminder_top5) + 
+  geom_col(aes(x = country, y = pop))
+
+```
+
+
+> Q. Create a bar chart showing the life expectancy of the five biggest countries by population in 2007.
+
+31
+
+- First limit/subset the dataset to the year 2007
+
+```{r}
+filter(gapminder, year==2007)
+```
+
+- Then find the `pop` value for Ireland 
+```{r}
+gap07 <- filter(gapminder, year==2007)
+
+ire_pop <- filter(gap07, country=="Ireland")["pop"]
+
+filter(gap07, pop < 4109086)
+
+```
+
+
+- Then extract all rows with `pop` less than Ireland
+
+
+```{r}
+gap_small <- filter(gap07, pop < 4109086)
+nrow(gap_small)
+```
+
+
+
+```{r}
+ggplot(gap_small) +
+  aes(gdpPercap, lifeExp, label=country) +
+  geom_point()+
+  geom_label()
+```
+
+
+
+### Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this 
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
